@@ -3,8 +3,9 @@ from typing import Callable
 from traffic_sim.strategies.baseline import ConstantController
 from traffic_sim.strategies.idle_switch import IdleController
 from traffic_sim.controller import Controller
-from traffic_sim.utils import print_padding
+from traffic_sim.utils import print_padding, timer, quadratic_frustration_fn
 import numpy as np
+import concurrent.futures
 
 
 def sim(
@@ -47,6 +48,11 @@ def sim(
     return c
 
 
+def sim_pool(kwargs: dict) -> Controller:
+    return sim(**kwargs)
+
+
+@timer
 def main(
     controller: Callable,
     n_sim: int,
@@ -59,21 +65,24 @@ def main(
     **strategy_kwargs
 ):
 
+    sim_kwargs = dict(
+        controller=controller,
+        n_lanes=n_lanes,
+        exit_rate=exit_rate,
+        arrival_rate_min=arrival_rate_min,
+        num_cars=num_cars,
+        frustration_fn=frustration_fn,
+        verbose=verbose,
+        **strategy_kwargs
+    )
+
+    print('Running simulations...', end='')
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        controllers = executor.map(sim_pool, [sim_kwargs] * n_sim)
+    print('done')
+
     frustrations = []
-    print_padding(controller.__name__, pad_char='*', string_len=50)
-    for i in range(1, n_sim+1):
-        if i % 50 == 0:
-            print(f'Sim {i}')
-        c = sim(
-            controller=controller,
-            n_lanes=n_lanes,
-            exit_rate=exit_rate,
-            arrival_rate_min=arrival_rate_min,
-            num_cars=num_cars,
-            frustration_fn=frustration_fn,
-            verbose=verbose,
-            **strategy_kwargs
-        )
+    for c in controllers:
         avg_frustration = c.total_frustration / c.num_passed
         frustrations.append(avg_frustration)
 
@@ -82,19 +91,13 @@ def main(
 
 if __name__ == '__main__':
 
-    def quadratic_frustration_fn(x):
-        return (x / 60) ** 2
-
-    def expon_frustration_fn(x, k: float = 1):
-        return np.exp(k * (x / 60)) - 1
-
     baseline_frustration = main(
         controller=ConstantController,
         n_sim=1000,
         n_lanes=3,
         exit_rate=0.5,
         arrival_rate_min=30,
-        num_cars=1000,
+        num_cars=10000,
         frustration_fn=quadratic_frustration_fn,
         verbose=False,
         wait_time=20,

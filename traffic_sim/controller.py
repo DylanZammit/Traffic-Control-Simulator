@@ -12,10 +12,10 @@ class Controller(ABC):
     def __init__(
             self,
             n_lanes: int,
-            pop_lag: int,
+            exit_rate: int,
     ):
         self.clock = Clock()
-        self.pop_lag = pop_lag
+        self.exit_rate = exit_rate
 
         self.n_lanes = n_lanes
         self.lanes = [Lane(clock=self.clock) for _ in range(n_lanes)]
@@ -82,7 +82,7 @@ class Controller(ABC):
 
         self.active_lane.update_pending_to_active()
 
-        if self.clock.time - self.active_lane.last_exit_time > self.pop_lag:
+        if self.clock.time - self.active_lane.last_exit_time > 1 / self.exit_rate:
             self.active_lane.drive_car()
 
         if self.is_time_up():

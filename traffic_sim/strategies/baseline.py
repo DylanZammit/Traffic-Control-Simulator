@@ -8,4 +8,4 @@ class ConstantController(Controller):
         self.wait_time = wait_time
 
     def is_time_up(self) -> bool:
-        return self.clock.time - self.active_lane.active_since > self.wait_time
+        return self.clock.diff(self.active_lane.active_since) > self.wait_time

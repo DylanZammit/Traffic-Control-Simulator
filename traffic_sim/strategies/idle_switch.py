@@ -9,6 +9,7 @@ class IdleController(Controller):
         self.idle_time = idle_time
 
     def is_time_up(self) -> bool:
-        is_idle = self.active_lane.num_active_cars == 0 and \
-                self.clock.diff(self.active_lane.last_exit_time) > self.idle_time
-        return is_idle or self.clock.diff(self.active_lane.active_since) > self.wait_time
+        is_lane_empty = self.active_lane.num_active_cars == 0
+        is_idle_long = self.clock.diff(self.active_lane.last_exit_time) > self.idle_time
+        is_max_time_elapsed = self.clock.diff(self.active_lane.active_since) > self.wait_time
+        return is_lane_empty and is_idle_long or is_max_time_elapsed

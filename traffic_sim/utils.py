@@ -1,6 +1,8 @@
-from typing import Self, Any
+from typing import Self, Any, Dict, Callable
 from functools import wraps
 import time
+import matplotlib.colors as mcolors
+import matplotlib.pyplot as plt
 import numpy as np
 
 
@@ -17,7 +19,7 @@ class Clock:
         return self.time - t
 
 
-def print_padding(text: Any, pad_char: str = '*', string_len: int = 50):
+def print_padding(text: Any, pad_char: str = '*', string_len: int = 50) -> None:
     n_text = len(str(text))
 
     padding = pad_char * ((string_len - n_text) // 2 - 2)
@@ -25,7 +27,7 @@ def print_padding(text: Any, pad_char: str = '*', string_len: int = 50):
     print(f'{padding} {text} {padding}')
 
 
-def timer(func):
+def timer(func: Callable) -> Callable:
 
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -38,8 +40,21 @@ def timer(func):
     return wrapper
 
 
-def quadratic_frustration_fn(x):
+def quadratic_frustration_fn(x) -> float:
     return (x / 60) ** 2
 
-def expon_frustration_fn(x, k: float = 1):
+
+def expon_frustration_fn(x, k: float = 1) -> float:
     return np.exp(k * (x / 60)) - 1
+
+
+def plot_frustrations(models_frustration: Dict[str, list[float]]) -> None:
+    bins = np.linspace(0, 0.2, 20)
+
+    for colour, (model_name, frustration) in zip(mcolors.TABLEAU_COLORS, models_frustration.items()):
+        mean_frustration = float(np.mean(frustration))
+        plt.hist(frustration, bins, density=True, alpha=0.3, color=colour)
+        plt.axvline(x=mean_frustration, color=colour, label=model_name)
+
+    plt.legend()
+    plt.show()

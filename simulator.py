@@ -1,10 +1,8 @@
-import matplotlib.pyplot as plt
 from typing import Callable
 from traffic_sim.strategies.baseline import ConstantController
 from traffic_sim.strategies.idle_switch import IdleController
 from traffic_sim.controller import Controller
-from traffic_sim.utils import print_padding, timer, quadratic_frustration_fn
-import numpy as np
+from traffic_sim.utils import print_padding, timer, quadratic_frustration_fn, expon_frustration_fn, plot_frustrations
 import concurrent.futures
 
 
@@ -91,16 +89,30 @@ def main(
 
 if __name__ == '__main__':
 
+    frust_fn = quadratic_frustration_fn
+
     baseline_frustration = main(
         controller=ConstantController,
         n_sim=1000,
         n_lanes=3,
         exit_rate=0.5,
         arrival_rate_min=30,
-        num_cars=10000,
-        frustration_fn=quadratic_frustration_fn,
+        num_cars=1000,
+        frustration_fn=frust_fn,
         verbose=False,
         wait_time=20,
+    )
+
+    baseline40_frustration = main(
+        controller=ConstantController,
+        n_sim=1000,
+        n_lanes=3,
+        exit_rate=0.5,
+        arrival_rate_min=30,
+        num_cars=1000,
+        frustration_fn=frust_fn,
+        verbose=False,
+        wait_time=4000,
     )
 
     idle_frustration = main(
@@ -110,16 +122,16 @@ if __name__ == '__main__':
         exit_rate=0.5,
         arrival_rate_min=30,
         num_cars=1000,
-        frustration_fn=quadratic_frustration_fn,
+        frustration_fn=frust_fn,
         verbose=False,
         wait_time=20,
-        idle_time=5,
+        idle_time=10,
     )
 
-    bins = np.linspace(0, 0.2, 20)
-    plt.hist(baseline_frustration, bins, density=True, alpha=0.3)
-    plt.hist(idle_frustration, bins, density=True, alpha=0.3)
+    models_frustration = {
+        'Baseline_20': baseline_frustration,
+        'Baseline_40': baseline40_frustration,
+        'Idle': idle_frustration
+    }
 
-    print(f'Average baseline frustration = {np.mean(baseline_frustration)}')
-    print(f'Average idle frustration = {np.mean(idle_frustration)}')
-    plt.show()
+    plot_frustrations(models_frustration)

@@ -54,6 +54,7 @@ class Controller(ABC):
         self.active_lane.set_red()
         self.active_lane_num = (self.active_lane_num + 1) % self.n_lanes
         self.active_lane = self.lanes[self.active_lane_num]
+        self.active_lane.set_green()
         return self.active_lane
 
     def populate_traffic_lights(

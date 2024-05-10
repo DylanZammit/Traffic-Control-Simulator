@@ -1,7 +1,7 @@
 from collections import deque
 import numpy as np
 from traffic_sim.utils import Clock
-from traffic_sim.car import Car
+from traffic_sim.entities.car import Car
 
 
 class Lane:

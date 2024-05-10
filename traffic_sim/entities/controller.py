@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
-from traffic_sim.lane import Lane
+from traffic_sim.entities.lane import Lane
 from traffic_sim.utils import Clock
-from traffic_sim.car import Car
+from traffic_sim.entities.car import Car
 from random import randint
 from typing import Self
 import numpy as np
@@ -13,6 +13,7 @@ class Controller(ABC):
             self,
             n_lanes: int,
             exit_rate: int,
+            save_hist: bool = False,
     ):
         self.clock = Clock()
         self.exit_rate = exit_rate
@@ -25,6 +26,12 @@ class Controller(ABC):
         self.t = 0
 
         self.run_next_lane()
+
+        self.save_hist = save_hist
+        self.state_hist = {
+            'lane_activity': {i: [] for i in range(self.n_lanes)},
+            'active_light': []
+        }
 
     @property
     def num_pending(self) -> int:
@@ -89,6 +96,14 @@ class Controller(ABC):
         if self.is_time_up():
             self.run_next_lane()
 
+        if self.save_hist:
+            self.update_hist()
+
     @abstractmethod
     def is_time_up(self) -> bool:
         raise NotImplementedError('Must create a subclass and implement is_time_up method containing the AI.')
+
+    def update_hist(self):
+        for i in range(self.n_lanes):
+            self.state_hist['lane_activity'][i].append(self.lanes[i].num_active_cars)
+            self.state_hist['active_light'].append(self.active_lane_num)

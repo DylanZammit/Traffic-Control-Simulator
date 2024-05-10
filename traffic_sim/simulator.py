@@ -1,8 +1,8 @@
 from typing import Callable
 from traffic_sim.strategies.baseline import ConstantController
 from traffic_sim.strategies.idle_switch import IdleController
-from traffic_sim.controller import Controller
-from traffic_sim.utils import print_padding, timer, quadratic_frustration_fn, expon_frustration_fn, plot_frustrations
+from traffic_sim.entities.controller import Controller
+from traffic_sim.utils import print_padding, timer, quadratic_frustration_fn, plot_frustrations
 import concurrent.futures
 
 
@@ -114,6 +114,12 @@ if __name__ == '__main__':
         **sim_kwargs
     )
 
+    baseline200_frustration = main(
+        controller=ConstantController,
+        wait_time=200,
+        **sim_kwargs
+    )
+
     idle_frustration = main(
         controller=IdleController,
         wait_time=20,
@@ -131,6 +137,7 @@ if __name__ == '__main__':
     models_frustration = {
         'Baseline_20': baseline_frustration,
         'Baseline_40': baseline40_frustration,
+        'Baseline_200': baseline200_frustration,
         'Idle': idle_frustration,
         'Idle_40': idle40_frustration
     }

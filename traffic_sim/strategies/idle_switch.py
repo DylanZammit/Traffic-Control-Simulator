@@ -1,4 +1,4 @@
-from traffic_sim.controller import Controller
+from traffic_sim.entities.controller import Controller
 
 
 class IdleController(Controller):

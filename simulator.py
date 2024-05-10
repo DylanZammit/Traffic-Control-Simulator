@@ -90,9 +90,9 @@ def main(
 if __name__ == '__main__':
 
     frust_fn = quadratic_frustration_fn
+    # frust_fn = expon_frustration_fn
 
-    baseline_frustration = main(
-        controller=ConstantController,
+    sim_kwargs = dict(
         n_sim=1000,
         n_lanes=3,
         exit_rate=0.5,
@@ -100,38 +100,39 @@ if __name__ == '__main__':
         num_cars=1000,
         frustration_fn=frust_fn,
         verbose=False,
+    )
+
+    baseline_frustration = main(
+        controller=ConstantController,
         wait_time=20,
+        **sim_kwargs
     )
 
     baseline40_frustration = main(
         controller=ConstantController,
-        n_sim=1000,
-        n_lanes=3,
-        exit_rate=0.5,
-        arrival_rate_min=30,
-        num_cars=1000,
-        frustration_fn=frust_fn,
-        verbose=False,
-        wait_time=4000,
+        wait_time=40,
+        **sim_kwargs
     )
 
     idle_frustration = main(
         controller=IdleController,
-        n_sim=1000,
-        n_lanes=3,
-        exit_rate=0.5,
-        arrival_rate_min=30,
-        num_cars=1000,
-        frustration_fn=frust_fn,
-        verbose=False,
         wait_time=20,
-        idle_time=10,
+        idle_time=5,
+        **sim_kwargs
+    )
+
+    idle40_frustration = main(
+        controller=IdleController,
+        wait_time=40,
+        idle_time=5,
+        **sim_kwargs
     )
 
     models_frustration = {
         'Baseline_20': baseline_frustration,
         'Baseline_40': baseline40_frustration,
-        'Idle': idle_frustration
+        'Idle': idle_frustration,
+        'Idle_40': idle40_frustration
     }
 
     plot_frustrations(models_frustration)

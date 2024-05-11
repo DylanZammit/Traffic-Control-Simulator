@@ -2,6 +2,7 @@ from typing import Self, Any, Callable
 from functools import wraps
 import time
 import numpy as np
+from scipy.stats import beta
 
 
 class Clock:
@@ -45,8 +46,53 @@ def quadratic_frustration_fn(x) -> float:
 def expon_frustration_fn(x, k: float = 1) -> float:
     return np.exp(k * (x / 60)) - 1
 
+def traffic_rate(
+        t: float,
+        morning_peak_time: float = 8,
+        morning_peak_rate: float = 30,
+        evening_peak_time: float = 17,
+        evening_peak_rate: float = 40,
+        baseline_rate: float = 5
+) -> float:
+
+    t_beta = t / 24
+    r = morning_peak_time / 24
+    b_morning = 40
+    a_morning = - ((b_morning - 2) * r + 1) / (r - 1)
+
+    r = evening_peak_time / 24
+    b_evening = 40
+    a_evening = - ((b_evening - 2) * r + 1) / (r - 1)
+
+    mode_morning = beta.pdf((a_morning - 1) / (a_morning + b_morning - 2), a_morning, b_morning)
+    mode_evening = beta.pdf((a_evening - 1) / (a_evening + b_evening - 2), a_evening, b_evening)
+
+    morning_rate = beta.pdf(t_beta, a_morning, b_morning) / mode_morning * (morning_peak_rate - baseline_rate)
+    evening_rate = beta.pdf(t_beta, a_evening, b_evening) / mode_evening * (evening_peak_rate - baseline_rate)
+
+    return baseline_rate + morning_rate + evening_rate
+
 
 FRUSTRATION_MAP = {
     'quad': quadratic_frustration_fn,
     'expon': expon_frustration_fn
 }
+
+
+if __name__ == '__main__':
+    import matplotlib.pyplot as plt
+
+    # Create an array of times from 0 to 24 hours (with fine resolution)
+    times = np.linspace(0, 24, 1000)
+
+    # Calculate traffic rates for these times
+    rates = [traffic_rate(t) for t in times]
+
+    # Plotting the function
+    plt.figure(figsize=(10, 5))
+    plt.plot(times, rates)
+    plt.title('Traffic Rate Throughout the Day')
+    plt.xlabel('Time (hours)')
+    plt.ylabel('Rate of Incoming Cars (cars/hour)')
+    plt.grid(True)
+    plt.show()

@@ -138,15 +138,15 @@ if __name__ == '__main__':
     )
 
     models_frustration = {
-        'Baseline_20': baseline_frustration,
+        # 'Baseline_20': baseline_frustration,
         'Baseline_40': baseline40_frustration,
-        'Idle_20_5': idle_frustration,
+        # 'Idle_20_5': idle_frustration,
         'Idle_40_5': idle40_frustration
     }
 
     plot_frustrations(models_frustration)
     plt.figure()
-    plot_hist_active(baseline40_controllers[0], extra_title='Baseline 40s')
+    plot_hist_active(baseline40_controllers[0], extra_title='Baseline 40s', plot_total=True)
     plt.figure()
-    plot_hist_active(idle40_controllers[0], extra_title='Idle 40s - 5s wait')
+    plot_hist_active(idle40_controllers[0], extra_title='Idle 40s - 5s wait', plot_total=True)
     plt.show()

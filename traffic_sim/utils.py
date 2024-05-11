@@ -7,11 +7,12 @@ from scipy.stats import beta
 
 class Clock:
 
-    def __init__(self):
+    def __init__(self, step: int = 1):
         self.time = 0
+        self.step = step
 
     def tick(self) -> Self:
-        self.time += 1
+        self.time += self.step
         return self
 
     def diff(self, t) -> int:

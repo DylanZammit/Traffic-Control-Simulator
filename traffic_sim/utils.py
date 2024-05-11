@@ -1,8 +1,6 @@
-from typing import Self, Any, Dict, Callable
+from typing import Self, Any, Callable
 from functools import wraps
 import time
-import matplotlib.colors as mcolors
-import matplotlib.pyplot as plt
 import numpy as np
 
 
@@ -46,22 +44,3 @@ def quadratic_frustration_fn(x) -> float:
 
 def expon_frustration_fn(x, k: float = 1) -> float:
     return np.exp(k * (x / 60)) - 1
-
-
-def plot_frustrations(models_frustration: Dict[str, list[float]]) -> None:
-
-    min_val = min(min(q) for q in models_frustration.values())
-    max_val = max(max(q) for q in models_frustration.values())
-
-    bins = np.linspace(min_val, max_val, 20)
-
-    for colour, (model_name, frustration) in zip(mcolors.TABLEAU_COLORS, models_frustration.items()):
-        mean_frustration = float(np.mean(frustration))
-        plt.hist(frustration, bins, density=True, alpha=0.3, color=colour)
-        plt.axvline(x=mean_frustration, color=colour, label=model_name)
-
-    subtitle = r'Histogram of frustration $f(x) = (\dfrac{x}{60})^2$ and average frustration.'
-    plt.title(subtitle, fontsize=8)
-    plt.suptitle('Frustration by Model')
-    plt.legend()
-    plt.show()

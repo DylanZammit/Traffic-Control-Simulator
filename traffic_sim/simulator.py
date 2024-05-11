@@ -2,8 +2,10 @@ from typing import Callable
 from traffic_sim.strategies.baseline import ConstantController
 from traffic_sim.strategies.idle_switch import IdleController
 from traffic_sim.entities.controller import Controller
-from traffic_sim.utils import print_padding, timer, quadratic_frustration_fn, plot_frustrations
+from traffic_sim.utils import print_padding, timer, quadratic_frustration_fn
+from traffic_sim.plotter import plot_frustrations, plot_hist_active
 import concurrent.futures
+import matplotlib.pyplot as plt
 
 
 def sim(
@@ -14,12 +16,14 @@ def sim(
     num_cars: int = 1000,
     frustration_fn: Callable = lambda x: x**2,
     verbose=False,
+    save_hist=False,
     **strategy_kwargs
 ) -> Controller:
 
     c = controller(
         n_lanes=n_lanes,
         exit_rate=exit_rate,
+        save_hist=save_hist,
         **strategy_kwargs
     )
 
@@ -60,6 +64,7 @@ def main(
     num_cars: int = 1000,
     frustration_fn: Callable = lambda x: x ** 2,
     verbose=False,
+    save_hist=False,
     **strategy_kwargs
 ):
 
@@ -71,6 +76,7 @@ def main(
         num_cars=num_cars,
         frustration_fn=frustration_fn,
         verbose=verbose,
+        save_hist=save_hist,
         **strategy_kwargs
     )
 
@@ -79,12 +85,14 @@ def main(
         controllers = executor.map(sim_pool, [sim_kwargs] * n_sim)
     print('done')
 
+    # I want to refer to these values again in the future
+    controllers = list(controllers)
     frustrations = []
     for c in controllers:
         avg_frustration = c.total_frustration / c.num_passed
         frustrations.append(avg_frustration)
 
-    return frustrations
+    return frustrations, controllers
 
 
 if __name__ == '__main__':
@@ -96,38 +104,33 @@ if __name__ == '__main__':
         n_sim=1000,
         n_lanes=3,
         exit_rate=0.5,
-        arrival_rate_min=30,
+        arrival_rate_min=20,
         num_cars=1000,
         frustration_fn=frust_fn,
         verbose=False,
+        save_hist=True,
     )
 
-    baseline_frustration = main(
+    baseline_frustration, baseline_controllers = main(
         controller=ConstantController,
         wait_time=20,
         **sim_kwargs
     )
 
-    baseline40_frustration = main(
+    baseline40_frustration, baseline40_controllers = main(
         controller=ConstantController,
         wait_time=40,
         **sim_kwargs
     )
 
-    baseline200_frustration = main(
-        controller=ConstantController,
-        wait_time=200,
-        **sim_kwargs
-    )
-
-    idle_frustration = main(
+    idle_frustration, idle_controllers = main(
         controller=IdleController,
         wait_time=20,
         idle_time=5,
         **sim_kwargs
     )
 
-    idle40_frustration = main(
+    idle40_frustration, idle40_controllers = main(
         controller=IdleController,
         wait_time=40,
         idle_time=5,
@@ -137,9 +140,13 @@ if __name__ == '__main__':
     models_frustration = {
         'Baseline_20': baseline_frustration,
         'Baseline_40': baseline40_frustration,
-        'Baseline_200': baseline200_frustration,
-        'Idle': idle_frustration,
-        'Idle_40': idle40_frustration
+        'Idle_20_5': idle_frustration,
+        'Idle_40_5': idle40_frustration
     }
 
     plot_frustrations(models_frustration)
+    plt.figure()
+    plot_hist_active(baseline40_controllers[0], extra_title='Baseline 40s')
+    plt.figure()
+    plot_hist_active(idle40_controllers[0], extra_title='Idle 40s - 5s wait')
+    plt.show()

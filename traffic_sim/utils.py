@@ -1,5 +1,5 @@
 from typing import Self, Any, Callable
-from functools import wraps
+from functools import wraps, cache
 import time
 import numpy as np
 from scipy.stats import beta
@@ -46,8 +46,10 @@ def quadratic_frustration_fn(x) -> float:
 def expon_frustration_fn(x, k: float = 1) -> float:
     return np.exp(k * (x / 60)) - 1
 
+
+@cache
 def traffic_rate(
-        t: float,
+        t_hours: float,
         morning_peak_time: float = 8,
         morning_peak_rate: float = 30,
         evening_peak_time: float = 17,
@@ -55,7 +57,9 @@ def traffic_rate(
         baseline_rate: float = 5
 ) -> float:
 
-    t_beta = t / 24
+    t_hours = t_hours % 24
+
+    t_beta = t_hours / 24
     r = morning_peak_time / 24
     b_morning = 40
     a_morning = - ((b_morning - 2) * r + 1) / (r - 1)

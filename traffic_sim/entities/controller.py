@@ -1,25 +1,26 @@
 from abc import ABC, abstractmethod
 from traffic_sim.entities.lane import Lane
 from traffic_sim.utils import Clock
-from traffic_sim.entities.car import Car
-from random import randint
-from typing import Self
-import numpy as np
+from typing import List, Callable
 
 
 class Controller(ABC):
 
     def __init__(
             self,
-            n_lanes: int,
+            lanes_config: List[dict],
             exit_rate: int,
+            frustration_fn: Callable,
             save_hist: bool = False,
     ):
         self.clock = Clock()
         self.exit_rate = exit_rate
 
-        self.n_lanes = n_lanes
-        self.lanes = [Lane(clock=self.clock) for _ in range(n_lanes)]
+        self.n_lanes = len(lanes_config)
+        self.lanes = [
+            Lane(clock=self.clock, frustration_fn=frustration_fn, **lane_config)
+            for lane_config in lanes_config
+        ]
 
         self.active_lane_num = 0
         self.active_lane = self.lanes[self.active_lane_num]
@@ -32,10 +33,6 @@ class Controller(ABC):
             'lane_activity': {i: [] for i in range(self.n_lanes)},
             'active_light': []
         }
-
-    @property
-    def num_pending(self) -> int:
-        return sum(lane.num_pending_cars for lane in self.lanes)
 
     @property
     def num_active(self) -> int:
@@ -64,31 +61,12 @@ class Controller(ABC):
         self.active_lane.set_green()
         return self.active_lane
 
-    def populate_traffic_lights(
-            self,
-            num_cars: int,
-            arrival_rate_min: float,
-            **car_args
-    ) -> Self:
-        tx = 0
-        for _ in range(num_cars):
-            tx_arrival = int(np.random.exponential(60 / arrival_rate_min))
-            tx += tx_arrival
-
-            lane_num = randint(0, self.n_lanes - 1)
-            car = Car(arrival_time=tx, clock=self.clock, **car_args)
-            self.lanes[lane_num].add_pending(car)
-
-        return self
-
     def run_iter(self) -> None:
 
         self.clock.tick()
 
-        if self.num_pending == 0 and self.num_active == 0:
-            return
-
-        self.active_lane.update_pending_to_active()
+        for lane in self.lanes:
+            lane.update_new_active()
 
         if self.clock.time - self.active_lane.last_exit_time > 1 / self.exit_rate:
             self.active_lane.drive_car()

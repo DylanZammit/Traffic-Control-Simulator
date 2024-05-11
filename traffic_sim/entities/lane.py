@@ -1,21 +1,26 @@
 from collections import deque
+
 import numpy as np
 from traffic_sim.utils import Clock
 from traffic_sim.entities.car import Car
+from typing import Callable
 
 
 class Lane:
 
-    def __init__(self, clock: Clock):
+    def __init__(self, clock: Clock, traffic_rate_fn: Callable, frustration_fn: Callable):
         self.green = False
         self.clock = clock
         self.active_since = -np.inf
         self.last_active_time = -np.inf
         self.last_exit_time = -np.inf
 
+        self.traffic_rate_fn = traffic_rate_fn
+
         self.active: deque[Car] = deque()
-        self.pending: deque[Car] = deque()
         self.passed: deque[Car] = deque()
+
+        self.frustration_fn = frustration_fn
 
     def set_green(self) -> None:
         self.green = True
@@ -28,10 +33,6 @@ class Lane:
     @property
     def num_active_cars(self) -> int:
         return len(self.active)
-
-    @property
-    def num_pending_cars(self) -> int:
-        return len(self.pending)
 
     @property
     def num_passed_cars(self) -> int:
@@ -53,17 +54,18 @@ class Lane:
     def total_frustration(self) -> float:
         return self.active_frustration + self.passed_frustration
 
-    def add_pending(self, car: Car) -> None:
-        self.pending.appendleft(car)
+    def update_new_active(self) -> None:
 
-    def update_pending_to_active(self) -> None:
-        if len(self.pending) == 0:
-            return
+        current_rate = self.traffic_rate_fn(self.clock.time / 60 / 60)
 
-        car = self.pending[-1]
-        while self.clock.time > car.arrival_time and len(self.pending) > 0:
-            car = self.pending[-1]
-            self.active.append(self.pending.pop())
+        num_new_cars = int(np.random.poisson(current_rate / 60))
+
+        for _ in range(num_new_cars):
+            car = Car(
+                frustration_fn=self.frustration_fn,
+                clock=self.clock,
+            )
+            self.active.append(car)
 
     def drive_car(self) -> None:
         if self.num_active_cars == 0:

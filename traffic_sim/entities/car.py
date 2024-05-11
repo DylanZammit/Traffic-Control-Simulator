@@ -7,7 +7,6 @@ class Car:
     def __init__(
             self,
             frustration_fn: Callable,
-            arrival_time: int,
             clock: Clock
     ):
         """
@@ -16,7 +15,7 @@ class Car:
         self.clock = clock
         self.frustration_fn = frustration_fn
 
-        self.arrival_time = arrival_time
+        self.arrival_time = self.clock.time
         self.exit_time = None
 
     @property

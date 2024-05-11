@@ -44,3 +44,9 @@ def quadratic_frustration_fn(x) -> float:
 
 def expon_frustration_fn(x, k: float = 1) -> float:
     return np.exp(k * (x / 60)) - 1
+
+
+FRUSTRATION_MAP = {
+    'quad': quadratic_frustration_fn,
+    'expon': expon_frustration_fn
+}

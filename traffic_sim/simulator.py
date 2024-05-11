@@ -2,10 +2,12 @@ from typing import Callable
 from traffic_sim.strategies.baseline import ConstantController
 from traffic_sim.strategies.idle_switch import IdleController
 from traffic_sim.entities.controller import Controller
-from traffic_sim.utils import print_padding, timer, quadratic_frustration_fn
+from traffic_sim.utils import print_padding, timer, quadratic_frustration_fn, FRUSTRATION_MAP
 from traffic_sim.plotter import plot_frustrations, plot_hist_active
 import concurrent.futures
 import matplotlib.pyplot as plt
+import yaml
+from pathlib import Path
 
 
 def sim(
@@ -92,61 +94,23 @@ def main(
         avg_frustration = c.total_frustration / c.num_passed
         frustrations.append(avg_frustration)
 
-    return frustrations, controllers
+    return {'frustrations': frustrations, 'controllers': controllers}
 
 
 if __name__ == '__main__':
 
-    frust_fn = quadratic_frustration_fn
-    # frust_fn = expon_frustration_fn
+    p = Path(__file__).with_name('config.yaml')
+    with p.open('r') as f:
+        config = yaml.safe_load(f)['simulation']
 
-    sim_kwargs = dict(
-        n_sim=1000,
-        n_lanes=3,
-        exit_rate=0.5,
-        arrival_rate_min=20,
-        num_cars=1000,
-        frustration_fn=frust_fn,
-        verbose=False,
-        save_hist=True,
-    )
+    sim_kwargs = config['shared']
+    sim_kwargs['frustration_fn'] = FRUSTRATION_MAP[sim_kwargs['frustration_fn']]
 
-    baseline_frustration, baseline_controllers = main(
-        controller=ConstantController,
-        wait_time=20,
-        **sim_kwargs
-    )
+    model_outputs = {}
+    for model_name, model_kwargs in config['models'].items():
+        model_kwargs['controller'] = globals()[model_kwargs['controller']]
+        model_outputs[model_name] = main(**model_kwargs, **sim_kwargs)
 
-    baseline40_frustration, baseline40_controllers = main(
-        controller=ConstantController,
-        wait_time=40,
-        **sim_kwargs
-    )
-
-    idle_frustration, idle_controllers = main(
-        controller=IdleController,
-        wait_time=20,
-        idle_time=5,
-        **sim_kwargs
-    )
-
-    idle40_frustration, idle40_controllers = main(
-        controller=IdleController,
-        wait_time=40,
-        idle_time=5,
-        **sim_kwargs
-    )
-
-    models_frustration = {
-        # 'Baseline_20': baseline_frustration,
-        'Baseline_40': baseline40_frustration,
-        # 'Idle_20_5': idle_frustration,
-        'Idle_40_5': idle40_frustration
-    }
-
-    plot_frustrations(models_frustration)
-    plt.figure()
-    plot_hist_active(baseline40_controllers[0], extra_title='Baseline 40s', plot_total=True)
-    plt.figure()
-    plot_hist_active(idle40_controllers[0], extra_title='Idle 40s - 5s wait', plot_total=True)
+    plot_frustrations(model_outputs)
+    plot_hist_active(model_outputs, plot_total=True)
     plt.show()

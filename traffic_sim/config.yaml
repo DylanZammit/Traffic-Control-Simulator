@@ -17,24 +17,28 @@ simulation:
                 morning_peak_rate: 30
                 evening_peak_rate: 10
     models:
-        Baseline_20:
+        Baseline_40s:
+            controller: ConstantController
+            wait_time: 40
+
+        Baseline_20s:
             controller: ConstantController
             wait_time: 20
 
-        Baseline_10:
+        Baseline_10s:
             controller: ConstantController
             wait_time: 10
 
-        Baseline_5:
+        Baseline_5s:
             controller: ConstantController
             wait_time: 5
 
-        Idle_20_5:
+        Idle_20s_5s:
             controller: IdleController
             wait_time: 20
             idle_time: 5
 
-        Idle_10_5:
+        Idle_10s_5s:
             controller: IdleController
-            wait_time: 40
+            wait_time: 10
             idle_time: 5

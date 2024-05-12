@@ -107,5 +107,5 @@ if __name__ == '__main__':
     if config.get('n_sim', 1) > 20:
         plot_frustrations(model_outputs)
 
-    plot_hist_active(model_outputs, plot_total=True)
+    plot_hist_active(model_outputs, plot_total=False)
     plt.show()

@@ -71,7 +71,7 @@ def main(
         **strategy_kwargs
     )
 
-    print('Running simulations...', end='')
+    print(f'Running simulations ({controller.__name__})...', end='')
     with concurrent.futures.ProcessPoolExecutor() as executor:
         controllers = executor.map(sim_pool, [sim_kwargs] * n_sim)
     print('done')

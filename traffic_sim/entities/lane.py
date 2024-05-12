@@ -28,6 +28,10 @@ class Lane:
         self.last_active_time = self.clock.time
 
     @property
+    def entry_rate(self) -> int:
+        return self.traffic_rate_fn(self.clock.time / 60 / 60)
+
+    @property
     def num_active_cars(self) -> int:
         return len(self.active)
 

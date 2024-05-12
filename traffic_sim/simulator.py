@@ -17,6 +17,7 @@ def sim(
     frustration_fn: Callable = lambda x: x**2,
     verbose=False,
     save_hist=False,
+    duration_hours: int = 24,
     **strategy_kwargs
 ) -> Controller:
 
@@ -28,7 +29,7 @@ def sim(
         **strategy_kwargs
     )
 
-    while c.clock.time / 60 / 60 < 24:
+    while c.clock.time / 60 / 60 < duration_hours:
         c.run_iter()
         if verbose:
             print(f'-----Time = {c.clock.time}-----')

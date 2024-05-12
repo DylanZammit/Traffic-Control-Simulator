@@ -1,6 +1,7 @@
 simulation:
     shared:
         n_sim: 1
+        duration_hours: 1
         exit_rate: 0.5
         frustration_fn: quad
         verbose: False

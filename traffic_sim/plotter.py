@@ -31,10 +31,37 @@ def plot_hist_active(
         idx: int = 0,
 ):
 
-    fig, ax = plt.subplots(len(models), 1)
-    for ax_i, (model_name, model_metadata) in zip(ax, models.items()):
+    num_models = len(models)
+
+    grid_map = {
+        1: (1, 1),
+        2: (2, 1),
+        3: (3, 1),
+        4: (4, 1),
+        5: (3, 2),
+        6: (3, 2),
+        7: (4, 2),
+        8: (4, 2),
+    }
+
+    grid = grid_map.get(num_models, (num_models, 1))
+    fig, ax = plt.subplots(*grid, sharex=True)
+    if not isinstance(ax, np.ndarray):
+        ax = np.array([ax])
+
+    for ax_i, (model_name, model_metadata) in zip(ax.flatten(), models.items()):
         controller = model_metadata['controllers'][idx]
-        dom = [i / 60 for i in range(controller.clock.time)]
+        avg_frustration = model_metadata['frustrations'][idx]
+        dom = np.array([i for i in range(controller.clock.time)])
+
+        time_unit = 'seconds'
+        if 120 <= len(dom) < 7200:
+            time_unit = 'minutes'
+            dom = dom / 60
+        elif len(dom) >= 7200:
+            time_unit = 'hours'
+            dom = dom / (60 * 60)
+
         for lane, num_active in controller.state_hist['lane_activity'].items():
             ax_i.plot(dom, num_active, label=f'Lane {lane+1}')
 
@@ -44,9 +71,10 @@ def plot_hist_active(
 
             ax_i.plot(dom, total, label='Total', color='black')
 
-        title = f'Num Active cars after 10 minutes: {model_name}'
+        title = f'{model_name} frustration: {avg_frustration:.2f}'
         ax_i.set_title(title)
-        ax_i.set_xlabel('Time passed in minutes')
+        ax_i.set_xlabel(f'Time passed in {time_unit}')
         ax_i.set_ylabel('Num cars waiting')
         ax_i.grid()
         ax_i.legend()
+        plt.tight_layout()

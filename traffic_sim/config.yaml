@@ -1,29 +1,44 @@
 simulation:
     shared:
-        n_sim: 1000
-        n_lanes: 3
+        n_sim: 1
+        duration_hours: 24
         exit_rate: 0.5
-        arrival_rate_min: 20
-        num_cars: 1000
         frustration_fn: quad
         verbose: False
         save_hist: True
-
+        lanes_config:
+            -
+                morning_peak_rate: 10
+                evening_peak_rate: 30
+            -
+                morning_peak_rate: 15
+                evening_peak_rate: 15
+            -
+                morning_peak_rate: 30
+                evening_peak_rate: 10
     models:
-        Baseline_20:
-            controller: ConstantController
-            wait_time: 20
-
-        Baseline_40:
+        Baseline_40s:
             controller: ConstantController
             wait_time: 40
 
-        Idle_20_5:
+        Baseline_20s:
+            controller: ConstantController
+            wait_time: 20
+
+        Baseline_10s:
+            controller: ConstantController
+            wait_time: 10
+
+        Baseline_5s:
+            controller: ConstantController
+            wait_time: 5
+
+        Idle_20s_5s:
             controller: IdleController
             wait_time: 20
             idle_time: 5
 
-        Idle_40_5:
+        Idle_10s_5s:
             controller: IdleController
-            wait_time: 40
+            wait_time: 10
             idle_time: 5

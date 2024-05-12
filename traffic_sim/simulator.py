@@ -1,46 +1,39 @@
+from traffic_sim.strategies import *
 from typing import Callable
-from traffic_sim.strategies.baseline import ConstantController
-from traffic_sim.strategies.idle_switch import IdleController
 from traffic_sim.entities.controller import Controller
-from traffic_sim.utils import print_padding, timer, quadratic_frustration_fn, FRUSTRATION_MAP
+from traffic_sim.utils import print_padding, timer, FRUSTRATION_MAP, traffic_rate
 from traffic_sim.plotter import plot_frustrations, plot_hist_active
 import concurrent.futures
 import matplotlib.pyplot as plt
-import yaml
 from pathlib import Path
+import yaml
+from functools import partial
 
 
 def sim(
     controller: Callable,
-    n_lanes: int = 3,
+    lanes_config: list[dict],
     exit_rate: float = 0.5,
-    arrival_rate_min: float = 30,
-    num_cars: int = 1000,
     frustration_fn: Callable = lambda x: x**2,
     verbose=False,
     save_hist=False,
+    duration_hours: float = 24,
     **strategy_kwargs
 ) -> Controller:
 
     c = controller(
-        n_lanes=n_lanes,
+        lanes_config=lanes_config,
         exit_rate=exit_rate,
         save_hist=save_hist,
+        frustration_fn=frustration_fn,
         **strategy_kwargs
     )
 
-    c.populate_traffic_lights(
-        num_cars=num_cars,
-        arrival_rate_min=arrival_rate_min,
-        frustration_fn=frustration_fn,
-    )
-
-    while c.num_pending > 0 or c.num_active > 0:
+    while c.clock.time / 60 / 60 < duration_hours:
         c.run_iter()
         if verbose:
             print(f'-----Time = {c.clock.time}-----')
             print_padding(c.clock.time, pad_char='-', string_len=50)
-            print(f'Number Pending = {c.num_pending}')
             print(f'Number Pending = {c.num_active}')
             print(f'Number Pending = {c.num_passed}')
 
@@ -60,10 +53,8 @@ def sim_pool(kwargs: dict) -> Controller:
 def main(
     controller: Callable,
     n_sim: int,
-    n_lanes: int = 3,
+    lanes_config: list[dict],
     exit_rate: float = 0.5,
-    arrival_rate_min: float = 30,
-    num_cars: int = 1000,
     frustration_fn: Callable = lambda x: x ** 2,
     verbose=False,
     save_hist=False,
@@ -72,10 +63,8 @@ def main(
 
     sim_kwargs = dict(
         controller=controller,
-        n_lanes=n_lanes,
+        lanes_config=lanes_config,
         exit_rate=exit_rate,
-        arrival_rate_min=arrival_rate_min,
-        num_cars=num_cars,
         frustration_fn=frustration_fn,
         verbose=verbose,
         save_hist=save_hist,
@@ -105,12 +94,18 @@ if __name__ == '__main__':
 
     sim_kwargs = config['shared']
     sim_kwargs['frustration_fn'] = FRUSTRATION_MAP[sim_kwargs['frustration_fn']]
+    sim_kwargs['lanes_config'] = [
+        {'traffic_rate_fn': partial(traffic_rate, **params)}
+        for params in sim_kwargs['lanes_config']
+    ]
 
     model_outputs = {}
     for model_name, model_kwargs in config['models'].items():
         model_kwargs['controller'] = globals()[model_kwargs['controller']]
         model_outputs[model_name] = main(**model_kwargs, **sim_kwargs)
 
-    plot_frustrations(model_outputs)
-    plot_hist_active(model_outputs, plot_total=True)
+    if config.get('n_sim', 1) > 20:
+        plot_frustrations(model_outputs)
+
+    plot_hist_active(model_outputs, plot_total=False)
     plt.show()

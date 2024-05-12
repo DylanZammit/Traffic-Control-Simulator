@@ -32,6 +32,9 @@ def plot_hist_active(
 ):
 
     fig, ax = plt.subplots(len(models), 1)
+    if not isinstance(ax, list):
+        ax = [ax]
+
     for ax_i, (model_name, model_metadata) in zip(ax, models.items()):
         controller = model_metadata['controllers'][idx]
         dom = [i / 60 for i in range(controller.clock.time)]

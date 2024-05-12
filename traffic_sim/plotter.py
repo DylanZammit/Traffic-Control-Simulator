@@ -51,6 +51,7 @@ def plot_hist_active(
 
     for ax_i, (model_name, model_metadata) in zip(ax.flatten(), models.items()):
         controller = model_metadata['controllers'][idx]
+        avg_frustration = model_metadata['frustrations'][idx]
         dom = np.array([i for i in range(controller.clock.time)])
 
         time_unit = 'seconds'
@@ -70,7 +71,7 @@ def plot_hist_active(
 
             ax_i.plot(dom, total, label='Total', color='black')
 
-        title = model_name
+        title = f'{model_name} frustration: {avg_frustration:.2f}'
         ax_i.set_title(title)
         ax_i.set_xlabel(f'Time passed in {time_unit}')
         ax_i.set_ylabel('Num cars waiting')

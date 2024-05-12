@@ -22,7 +22,7 @@ class Controller(ABC):
             for lane_config in lanes_config
         ]
 
-        self.active_lane_num = 0
+        self.active_lane_num = -1
         self.active_lane = self.lanes[self.active_lane_num]
         self.t = 0
 
@@ -72,8 +72,6 @@ class Controller(ABC):
         time_since_last_exit = self.clock.time - self.active_lane.last_exit_time
 
         if num_active_cars > 0 and time_since_last_exit >= (1 / self.exit_rate):
-            # two-lane road
-            self.active_lane.drive_car()
             self.active_lane.drive_car()
 
         if self.is_time_up():

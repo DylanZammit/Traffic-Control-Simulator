@@ -104,6 +104,8 @@ if __name__ == '__main__':
         model_kwargs['controller'] = globals()[model_kwargs['controller']]
         model_outputs[model_name] = main(**model_kwargs, **sim_kwargs)
 
-    plot_frustrations(model_outputs)
+    if config.get('n_sim', 1) > 20:
+        plot_frustrations(model_outputs)
+
     plot_hist_active(model_outputs, plot_total=True)
     plt.show()

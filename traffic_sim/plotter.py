@@ -31,11 +31,25 @@ def plot_hist_active(
         idx: int = 0,
 ):
 
-    fig, ax = plt.subplots(len(models), 1)
-    if not isinstance(ax, np.ndarray):
-        ax = [ax]
+    num_models = len(models)
 
-    for ax_i, (model_name, model_metadata) in zip(ax, models.items()):
+    grid_map = {
+        1: (1, 1),
+        2: (2, 1),
+        3: (3, 1),
+        4: (4, 1),
+        5: (3, 2),
+        6: (3, 2),
+        7: (4, 2),
+        8: (4, 2),
+    }
+
+    grid = grid_map.get(num_models, (num_models, 1))
+    fig, ax = plt.subplots(*grid)
+    if not isinstance(ax, np.ndarray):
+        ax = np.array([ax])
+
+    for ax_i, (model_name, model_metadata) in zip(ax.flatten(), models.items()):
         controller = model_metadata['controllers'][idx]
         dom = np.array([i for i in range(controller.clock.time)])
 
@@ -62,3 +76,4 @@ def plot_hist_active(
         ax_i.set_ylabel('Num cars waiting')
         ax_i.grid()
         ax_i.legend()
+        plt.tight_layout()

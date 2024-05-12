@@ -1,7 +1,7 @@
 simulation:
     shared:
         n_sim: 1
-        duration_hours: 1
+        duration_hours: 0.1
         exit_rate: 0.5
         frustration_fn: quad
         verbose: False
@@ -21,16 +21,20 @@ simulation:
             controller: ConstantController
             wait_time: 20
 
-        Baseline_40:
+        Baseline_10:
             controller: ConstantController
-            wait_time: 40
+            wait_time: 10
 
-#        Idle_20_5:
-#            controller: IdleController
-#            wait_time: 20
-#            idle_time: 5
-#
-#        Idle_40_5:
-#            controller: IdleController
-#            wait_time: 40
-#            idle_time: 5
+        Baseline_5:
+            controller: ConstantController
+            wait_time: 5
+
+        Idle_20_5:
+            controller: IdleController
+            wait_time: 20
+            idle_time: 5
+
+        Idle_10_5:
+            controller: IdleController
+            wait_time: 40
+            idle_time: 5

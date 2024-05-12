@@ -1,2 +1,3 @@
 from traffic_sim.strategies.baseline import ConstantController
 from traffic_sim.strategies.idle_switch import IdleController
+from traffic_sim.strategies.snapshot_optimiser import SnapshotController

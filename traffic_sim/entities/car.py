@@ -27,4 +27,4 @@ class Car:
         return (self.exit_time if self.exit_time else self.clock.time) - self.arrival_time
 
     def __repr__(self) -> str:
-        return f'Arrived at {self.arrival_time}'
+        return f'Arrived from {self.arrival_time} to {self.exit_time}'

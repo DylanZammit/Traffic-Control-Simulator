@@ -68,7 +68,12 @@ class Controller(ABC):
         for lane in self.lanes:
             lane.update_new_active()
 
-        if self.clock.time - self.active_lane.last_exit_time > 1 / self.exit_rate:
+        num_active_cars = self.active_lane.num_active_cars
+        time_since_last_exit = self.clock.time - self.active_lane.last_exit_time
+
+        if num_active_cars > 0 and time_since_last_exit >= (1 / self.exit_rate):
+            # two-lane road
+            self.active_lane.drive_car()
             self.active_lane.drive_car()
 
         if self.is_time_up():

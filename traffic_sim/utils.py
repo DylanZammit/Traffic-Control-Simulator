@@ -52,30 +52,30 @@ def expon_frustration_fn(x, k: float = 1) -> float:
 def traffic_rate(
         t_hours: float,
         morning_peak_time: float = 8,
-        morning_peak_rate: float = 30,
+        morning_peak_rate: float = 50,
         evening_peak_time: float = 17,
         evening_peak_rate: float = 40,
-        baseline_rate: float = 5
+        baseline_night_rate: float = 5,
 ) -> float:
 
     t_hours = t_hours % 24
 
     t_beta = t_hours / 24
     r = morning_peak_time / 24
-    b_morning = 40
+    b_morning = 10
     a_morning = - ((b_morning - 2) * r + 1) / (r - 1)
 
     r = evening_peak_time / 24
-    b_evening = 40
+    b_evening = 10
     a_evening = - ((b_evening - 2) * r + 1) / (r - 1)
 
     mode_morning = beta.pdf((a_morning - 1) / (a_morning + b_morning - 2), a_morning, b_morning)
     mode_evening = beta.pdf((a_evening - 1) / (a_evening + b_evening - 2), a_evening, b_evening)
 
-    morning_rate = beta.pdf(t_beta, a_morning, b_morning) / mode_morning * (morning_peak_rate - baseline_rate)
-    evening_rate = beta.pdf(t_beta, a_evening, b_evening) / mode_evening * (evening_peak_rate - baseline_rate)
+    morning_rate = beta.pdf(t_beta, a_morning, b_morning) / mode_morning * (morning_peak_rate - baseline_night_rate)
+    evening_rate = beta.pdf(t_beta, a_evening, b_evening) / mode_evening * (evening_peak_rate - baseline_night_rate)
 
-    return baseline_rate + morning_rate + evening_rate
+    return baseline_night_rate + morning_rate + evening_rate
 
 
 FRUSTRATION_MAP = {
@@ -91,7 +91,7 @@ if __name__ == '__main__':
     times = np.linspace(0, 24, 1000)
 
     # Calculate traffic rates for these times
-    rates = [traffic_rate(t) for t in times]
+    rates = [traffic_rate(t) * 60 for t in times]
 
     # Plotting the function
     plt.figure(figsize=(10, 5))

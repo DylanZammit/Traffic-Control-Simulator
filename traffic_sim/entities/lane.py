@@ -9,7 +9,6 @@ from typing import Callable
 class Lane:
 
     def __init__(self, clock: Clock, traffic_rate_fn: Callable, frustration_fn: Callable):
-        self.green = False
         self.clock = clock
         self.active_since = -np.inf
         self.last_active_time = -np.inf
@@ -23,11 +22,9 @@ class Lane:
         self.frustration_fn = frustration_fn
 
     def set_green(self) -> None:
-        self.green = True
         self.active_since = self.clock.time
 
     def set_red(self) -> None:
-        self.green = False
         self.last_active_time = self.clock.time
 
     @property

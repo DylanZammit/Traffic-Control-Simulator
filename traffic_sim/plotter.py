@@ -32,7 +32,7 @@ def plot_hist_active(
 ):
 
     fig, ax = plt.subplots(len(models), 1)
-    if not isinstance(ax, list):
+    if not isinstance(ax, np.ndarray):
         ax = [ax]
 
     for ax_i, (model_name, model_metadata) in zip(ax, models.items()):

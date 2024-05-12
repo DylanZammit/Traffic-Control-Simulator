@@ -66,7 +66,7 @@ class Lane:
                 frustration_fn=self.frustration_fn,
                 clock=self.clock,
             )
-            self.active.append(car)
+            self.active.appendleft(car)
 
     def drive_car(self) -> None:
         if self.num_active_cars == 0:
@@ -74,5 +74,5 @@ class Lane:
 
         exit_car = self.active.pop()
         exit_car.exit_time = self.clock.time
-        self.passed.append(exit_car)
+        self.passed.appendleft(exit_car)
         self.last_exit_time = self.clock.time

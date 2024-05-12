@@ -45,7 +45,7 @@ def plot_hist_active(
     }
 
     grid = grid_map.get(num_models, (num_models, 1))
-    fig, ax = plt.subplots(*grid)
+    fig, ax = plt.subplots(*grid, sharex=True)
     if not isinstance(ax, np.ndarray):
         ax = np.array([ax])
 
@@ -70,7 +70,7 @@ def plot_hist_active(
 
             ax_i.plot(dom, total, label='Total', color='black')
 
-        title = f'Num Active cars in Lane: {model_name}'
+        title = model_name
         ax_i.set_title(title)
         ax_i.set_xlabel(f'Time passed in {time_unit}')
         ax_i.set_ylabel('Num cars waiting')

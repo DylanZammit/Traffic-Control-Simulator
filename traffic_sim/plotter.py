@@ -37,7 +37,16 @@ def plot_hist_active(
 
     for ax_i, (model_name, model_metadata) in zip(ax, models.items()):
         controller = model_metadata['controllers'][idx]
-        dom = [i / 60 for i in range(controller.clock.time)]
+        dom = np.array([i for i in range(controller.clock.time)])
+
+        time_unit = 'seconds'
+        if 120 <= len(dom) < 7200:
+            time_unit = 'minutes'
+            dom = dom / 60
+        elif len(dom) >= 7200:
+            time_unit = 'hours'
+            dom = dom / (60 * 60)
+
         for lane, num_active in controller.state_hist['lane_activity'].items():
             ax_i.plot(dom, num_active, label=f'Lane {lane+1}')
 
@@ -47,9 +56,9 @@ def plot_hist_active(
 
             ax_i.plot(dom, total, label='Total', color='black')
 
-        title = f'Num Active cars after 10 minutes: {model_name}'
+        title = f'Num Active cars in Lane: {model_name}'
         ax_i.set_title(title)
-        ax_i.set_xlabel('Time passed in minutes')
+        ax_i.set_xlabel(f'Time passed in {time_unit}')
         ax_i.set_ylabel('Num cars waiting')
         ax_i.grid()
         ax_i.legend()

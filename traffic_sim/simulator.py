@@ -17,7 +17,7 @@ def sim(
     frustration_fn: Callable = lambda x: x**2,
     verbose=False,
     save_hist=False,
-    duration_hours: int = 24,
+    duration_hours: float = 24,
     **strategy_kwargs
 ) -> Controller:
 

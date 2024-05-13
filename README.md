@@ -71,6 +71,7 @@ Define the following variables:
 * `L_i`: car entry rate per minute for lane `i`,
 * `mu`: car exit rate per minute,
 * `t_i`: proportion of time spent green for lane `i`.
+
 From the above definitions, the following points follow:
 * `t_1 + ... + t_M = 1`,
 * `mu * t_i` is the average exit rate per loop for lane `i`,
@@ -79,7 +80,7 @@ From the above definitions, the following points follow:
 Thus, a natural objective function that we would like to minimise over
 the vector `t=(t_1, .., t_M)` is the *overall* average minutely car entry differential.
 ```math
-min_t sum_1^M [ max(0, L_i - mu * t_i) ^ 2]
+\min_t \sum_1^M [ \max(0, \lambda_i - \mu * t_i) ^ 2]
 ```
 Notice that squaring the inner component is essential, as otherwise
 the minimising solution would be to simply set `t_i = 0` for all `i` except

@@ -46,7 +46,13 @@ class SnapshotController(Controller):
 
         if self.save_hist:
             for i, lane in enumerate(self.lanes):
-                self.state_hist[f'lane_{i}_wait_time'] = lane.entry_rate_estimate
+                key = f'lane_{i}_wait_time'
+                val = lane.entry_rate_estimate
+                # TODO: use default dict
+                if key in self.state_hist:
+                    self.state_hist[key].append(val)
+                else:
+                    self.state_hist[key] = [val]
 
         is_max_time_elapsed = self.clock.diff(self.active_lane.active_since) > self.active_lane.wait_time
         return is_max_time_elapsed

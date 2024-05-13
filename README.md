@@ -68,23 +68,23 @@ to the Baseline model. The next model attempts to address this issue.
 This model attempts to use the rate of incoming cars to dynamically adjust the ratio of light duration between all lanes.
 Define the following variables:
 * `M`: number of lanes,
-* `L_i`: car entry rate per minute for lane `i`,
-* `mu`: car exit rate per minute,
-* `t_i`: proportion of time spent green for lane `i`.
+* $`\lambda_i`$: car entry rate per minute for lane `i`,
+* $`\mu`$: car exit rate per minute,
+* $`t_i`$: proportion of time spent green for lane `i`.
 
 From the above definitions, the following points follow:
-* `t_1 + ... + t_M = 1`,
-* `mu * t_i` is the average exit rate per loop for lane `i`,
-* `max(0, L_i - mu * t_i)` is the average car entry differential per loop for lane `i`.
+* $`t_1 + ... + t_M = 1`$,
+* $`\mu \cdot t_i`$ is the average exit rate per loop for lane `i`,
+* $`max(0, \lambda_i - \mu * t_i)`$ is the average car entry differential per loop for lane `i`.
 
 Thus, a natural objective function that we would like to minimise over
-the vector `t=(t_1, .., t_M)` is the *overall* average minutely car entry differential.
+the vector $`t=(t_1, .., t_M)`$ is the *overall* average minutely car entry differential.
 ```math
-\min_t \sum_1^M [ \max(0, \lambda_i - \mu * t_i) ^ 2]
+\min_t \sum_1^M \max(0, \lambda_i - \mu * t_i) ^ 2
 ```
 Notice that squaring the inner component is essential, as otherwise
-the minimising solution would be to simply set `t_i = 0` for all `i` except
-`t_j=1`, where `j` is the lane with the lowest rate of cars flowing in.
+the minimising solution would be to simply set $`t_i = 0`$ for all `i` except
+$`t_j=1`$, where `j` is the lane with the lowest rate of cars flowing in.
 
 This optimisation problem is run at the start of every loop, i.e. just before the first lane turns green.
 The outcome of the model is noted, and the current loop of lanes will use this result as waiting times.
@@ -156,11 +156,11 @@ simulation:
 ## Results
 
 Before describing the following figures, we define what is "frustration" in this context.
-Consider a car `c_ij` in lane `i` and position `j` waiting in traffic for `w_ij` seconds.
-The frustration of this car is defined to be `w_ij ^ 2`. Squaring the wait time helps reflect
+Consider a car $`c_{ij}`$ in lane `i` and position `j` waiting in traffic for $`w_ij`$ seconds.
+The frustration of this car is defined to be $`w_{ij} ^ 2`$. Squaring the wait time helps reflect
 that people tend to not mind stopping and waiting for a couple of seconds, but get
 increasingly frustrated (at a non-linear rate) the more they wait. The total frustration
-is then simply the sum of all `w_ij ^ 2` for all `i` and all `j`.
+is then simply the sum of all $`w_{ij} ^ 2`$ for all `i` and all `j`.
 
 The below image shows the entry rate of cars per minute in every lane. 
 Superimposed on this is the empirically estimated entry rate based on the past 5 minutes.

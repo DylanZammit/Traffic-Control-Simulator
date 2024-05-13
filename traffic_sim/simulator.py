@@ -107,7 +107,7 @@ if __name__ == '__main__':
     if config.get('n_sim', 1) > 20:
         plot_frustrations(model_outputs)
 
-    plot_hist_active(model_outputs, plot_total=True)
+    plot_hist_active(model_outputs, plot_total=False)
     if 'snapshot_controller' in model_outputs:
         plot_rate_estimate(model_outputs['snapshot_controller']['controllers'][0])
     plt.show()

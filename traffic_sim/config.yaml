@@ -9,12 +9,12 @@ simulation:
         lanes_config:
             -
                 morning_peak_rate: 10
-                evening_peak_rate: 25
+                evening_peak_rate: 20
             -
                 morning_peak_rate: 15
                 evening_peak_rate: 15
             -
-                morning_peak_rate: 25
+                morning_peak_rate: 20
                 evening_peak_rate: 10
     models:
 
@@ -30,3 +30,4 @@ simulation:
         snapshot_controller:
             controller: SnapshotController
             rate_lookback: 300
+            loop_duration: 60

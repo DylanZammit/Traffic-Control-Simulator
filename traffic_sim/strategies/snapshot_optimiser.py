@@ -6,9 +6,10 @@ from scipy.optimize import minimize
 
 class SnapshotController(Controller):
 
-    def __init__(self, rate_lookback: int = 300, **kwargs):
+    def __init__(self, rate_lookback: int = 300, loop_duration: int = 60, **kwargs):
         super().__init__(**kwargs)
         self.rate_lookback = rate_lookback
+        self.loop_duration = loop_duration
 
     def queue_penalty(self, t: list[float]):
         return sum(max(0, (lane.entry_rate_estimate - self.exit_rate * ti * 60)) ** 2 for ti, lane in zip(t, self.lanes))
@@ -32,6 +33,7 @@ class SnapshotController(Controller):
             x0 = np.array([1 / self.n_lanes] * self.n_lanes)
             bounds = [(0, 1) for _ in range(self.n_lanes)]
             cons = {'type': 'eq', 'fun': lambda x: sum(x) - 1}
+
             res = minimize(
                 self.queue_penalty,
                 x0=x0,
@@ -40,11 +42,17 @@ class SnapshotController(Controller):
             )
 
             for wait_time, lane in zip(res.x, self.lanes):
-                lane.wait_time = int(wait_time * 60)
+                lane.wait_time = int(wait_time * self.loop_duration)
 
         if self.save_hist:
             for i, lane in enumerate(self.lanes):
-                self.state_hist[f'lane_{i}_wait_time'] = lane.entry_rate_estimate
+                key = f'lane_{i}_wait_time'
+                val = lane.entry_rate_estimate
+                # TODO: use default dict
+                if key in self.state_hist:
+                    self.state_hist[key].append(val)
+                else:
+                    self.state_hist[key] = [val]
 
         is_max_time_elapsed = self.clock.diff(self.active_lane.active_since) > self.active_lane.wait_time
         return is_max_time_elapsed

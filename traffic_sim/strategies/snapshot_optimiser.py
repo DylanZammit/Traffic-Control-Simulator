@@ -10,6 +10,10 @@ class SnapshotController(Controller):
         super().__init__(**kwargs)
         self.rate_lookback = rate_lookback
 
+        self.x0 = np.array([1 / self.n_lanes] * self.n_lanes)
+        self.bounds = [(0, 1) for _ in range(self.n_lanes)]
+        self.cons = {'type': 'eq', 'fun': lambda x: sum(x) - 1}
+
     def queue_penalty(self, t: list[float]):
         return sum(max(0, (lane.entry_rate_estimate - self.exit_rate * ti * 60)) ** 2 for ti, lane in zip(t, self.lanes))
 
@@ -29,14 +33,11 @@ class SnapshotController(Controller):
             for lane in self.lanes:
                 lane.entry_rate_estimate = self.estimate_entry_rate(lane)
 
-            x0 = np.array([1 / self.n_lanes] * self.n_lanes)
-            bounds = [(0, 1) for _ in range(self.n_lanes)]
-            cons = {'type': 'eq', 'fun': lambda x: sum(x) - 1}
             res = minimize(
                 self.queue_penalty,
-                x0=x0,
-                bounds=bounds,
-                constraints=cons,
+                x0=self.x0,
+                bounds=self.bounds,
+                constraints=self.cons,
             )
 
             for wait_time, lane in zip(res.x, self.lanes):

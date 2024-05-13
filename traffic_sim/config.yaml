@@ -9,12 +9,12 @@ simulation:
         lanes_config:
             -
                 morning_peak_rate: 10
-                evening_peak_rate: 30
+                evening_peak_rate: 25
             -
                 morning_peak_rate: 15
                 evening_peak_rate: 15
             -
-                morning_peak_rate: 30
+                morning_peak_rate: 25
                 evening_peak_rate: 10
     models:
 

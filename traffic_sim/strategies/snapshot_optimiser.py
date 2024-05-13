@@ -11,7 +11,7 @@ class SnapshotController(Controller):
         self.rate_lookback = rate_lookback
 
     def queue_penalty(self, t: list[float]):
-        return sum(max(0, (lane.entry_rate - self.exit_rate * ti * 60)) ** 2 for ti, lane in zip(t, self.lanes))
+        return sum(max(0, (lane.entry_rate_estimate - self.exit_rate * ti * 60)) ** 2 for ti, lane in zip(t, self.lanes))
 
     def estimate_entry_rate(self, lane: Lane):
         n_cars = next((

@@ -80,7 +80,7 @@ From the above definitions, the following points follow:
 Thus, a natural objective function that we would like to minimise over
 the vector $`t=(t_1, .., t_M)`$ is the *overall* average minutely car entry differential.
 ```math
-\min_t \sum_1^M \max(0, \lambda_i - \mu * t_i) ^ 2
+L(t_1, \cdots, t_M) = \min_{t_1, \cdots, t_M} \sum_{i=1}^M \max(0, \lambda_i - \mu * t_i) ^ 2
 ```
 Notice that squaring the inner component is essential, as otherwise
 the minimising solution would be to simply set $`t_i = 0`$ for all `i` except

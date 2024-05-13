@@ -30,3 +30,4 @@ simulation:
         snapshot_controller:
             controller: SnapshotController
             rate_lookback: 300
+            loop_duration: 60

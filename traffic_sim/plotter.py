@@ -87,8 +87,8 @@ def plot_rate_estimate(controller: Controller):
     for i, (lane, col) in enumerate(zip(controller.lanes, mcolors.TABLEAU_COLORS)):
         rate_estimate = controller.state_hist[f'lane_{i}_wait_time']
         rate_true = [lane.traffic_rate_fn(t) for t in dom]
-        ax.plot(dom, rate_estimate, color=col)
-        ax.plot(dom, rate_true, label=f'Lane {i+1}', alpha=0.3, color=col)
+        ax.plot(dom, rate_estimate,  alpha=0.3, color=col)
+        ax.plot(dom, rate_true, label=f'Lane {i+1}', color=col)
 
     ax.set_ylabel(f'Cars per minute')
     ax.set_xlabel(f'Time in hours')

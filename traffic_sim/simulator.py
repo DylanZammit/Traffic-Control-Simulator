@@ -108,6 +108,6 @@ if __name__ == '__main__':
         plot_frustrations(model_outputs)
 
     plot_hist_active(model_outputs, plot_total=False)
-    for v in model_outputs.values():
-        plot_rate_estimate(v['controllers'][0])
+    if 'snapshot_controller' in model_outputs:
+        plot_rate_estimate(model_outputs['snapshot_controller']['controllers'][0])
     plt.show()

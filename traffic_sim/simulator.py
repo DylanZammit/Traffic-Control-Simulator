@@ -2,7 +2,7 @@ from traffic_sim.strategies import *
 from typing import Callable
 from traffic_sim.entities.controller import Controller
 from traffic_sim.utils import print_padding, timer, FRUSTRATION_MAP, traffic_rate
-from traffic_sim.plotter import plot_frustrations, plot_hist_active
+from traffic_sim.plotter import plot_frustrations, plot_hist_active, plot_rate_estimate
 import concurrent.futures
 import matplotlib.pyplot as plt
 from pathlib import Path
@@ -108,4 +108,6 @@ if __name__ == '__main__':
         plot_frustrations(model_outputs)
 
     plot_hist_active(model_outputs, plot_total=False)
+    for v in model_outputs.values():
+        plot_rate_estimate(v['controllers'][0])
     plt.show()

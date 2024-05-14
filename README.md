@@ -53,7 +53,7 @@ an encounter against an opponent. An implementation and more detailed explanatio
 There are two ways two define such a process.
 
 * The first definition states that the duration between any two successive arrivals follows an exponential distribution with some rate parameter $`\lambda`$.
-* The second definition states that for any time interval of length $`t`$ seconds, the number of cars arriving is Poisson distributed with mean parameter $`\lambda`$.
+* The second definition states that for any time interval of length $`t`$ seconds, the number of cars arriving is Poisson distributed with mean parameter $`\lambda t`$.
 
 The second definition is more relevant for the implementation of this project as shall be described in the next section. 
 ### Simulation
@@ -164,15 +164,15 @@ to the Baseline model. The next model attempts to address this issue.
 ### Snapshot Model
 This model attempts to use the rate of incoming cars to dynamically adjust the ratio of light duration between all lanes.
 Define the following variables:
-* `M`: number of lanes,
-* $`\lambda_i`$: car entry rate per minute for lane `i`,
+* $`M`$: number of lanes,
+* $`\lambda_i`$: car entry rate per minute for lane $`i`$,
 * $`\mu`$: car exit rate per minute,
-* $`t_i`$: proportion of time spent green for lane `i`.
+* $`t_i`$: proportion of time spent green for lane $`i`$.
 
 From the above definitions, the following points follow:
 * $`t_1 + ... + t_M = 1`$,
-* $`\mu \cdot t_i`$ is the average exit rate per loop for lane `i`,
-* $`max(0, \lambda_i - \mu * t_i)`$ is the average car entry differential per loop for lane `i`.
+* $`\mu \cdot t_i`$ is the average exit rate per loop for lane $`i`$,
+* $`max(0, \lambda_i - \mu * t_i)`$ is the average car entry differential per loop for lane $`i`$.
 
 Thus, a natural objective function that we would like to minimise over
 the vector $`t=(t_1, .., t_M)`$ is the *overall* average minutely car entry differential.
@@ -180,8 +180,8 @@ the vector $`t=(t_1, .., t_M)`$ is the *overall* average minutely car entry diff
 L(t_1, \cdots, t_M) = \min_{t_1, \cdots, t_M} \sum_{i=1}^M \max(0, \lambda_i - \mu * t_i) ^ 2
 ```
 Notice that squaring the inner component is essential, as otherwise
-the minimising solution would be to simply set $`t_i = 0`$ for all `i` except
-$`t_j=1`$, where `j` is the lane with the lowest rate of cars flowing in.
+the minimising solution would be to simply set $`t_i = 0`$ for all $`i`$ except
+$`t_j=1`$, where $`j`$ is the lane with the lowest rate of cars flowing in.
 
 This optimisation problem is run at the start of every loop, i.e. just before the first lane turns green.
 The outcome of the model is noted, and the current loop of lanes will use this result as waiting times.
@@ -194,7 +194,7 @@ A full 24-hour day is simulated where the exit rate is set to 1 car per second.
 How did I get to this figure? While stuck in traffic, I simply counted the number of cars
 in front of me, and then counted how long it took me to reach the first position. 
 Dividing the two roughly resulted in a rate of one car exit every two seconds.
-Since this junction has two lanes, I multiplied the rate of 0.5 by 2 to get a value of `mu=1`.
+Since this junction has two lanes, I multiplied the rate of 0.5 by 2 to get a value of $`\mu=1`$.
 
 A separate bimodal traffic rate was created to simulate the varying flow of traffic throughout the day for each separate lane.
 The bimodal nature reflects the increased spikes of traffic in the morning and afternoon rush
@@ -253,11 +253,11 @@ simulation:
 ## Results
 
 Before describing the following figures, we define what is "frustration" in this context.
-Consider a car $`c_{ij}`$ in lane `i` and position `j` waiting in traffic for $`w_ij`$ seconds.
+Consider a car $`c_{ij}`$ in lane $`i`$ and position $`j`$ waiting in traffic for $`w_ij`$ seconds.
 The frustration of this car is defined to be $`w_{ij} ^ 2`$. Squaring the wait time helps reflect
 that people tend to not mind stopping and waiting for a couple of seconds, but get
 increasingly frustrated (at a non-linear rate) the more they wait. The total frustration
-is then simply the sum of all $`w_{ij} ^ 2`$ for all `i` and all `j`.
+is then simply the sum of all $`w_{ij} ^ 2`$ for all $`i`$ and all $`j`$.
 
 The below image shows the entry rate of cars per minute in every lane. 
 Superimposed on this is the empirically estimated entry rate based on the past 5 minutes.

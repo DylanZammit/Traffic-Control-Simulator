@@ -29,6 +29,7 @@ def plot_hist_active(
         models: dict,
         plot_total: bool = False,
         idx: int = 0,
+        smooth: bool = False,
 ):
 
     num_models = len(models)
@@ -63,6 +64,11 @@ def plot_hist_active(
             dom = dom / (60 * 60)
 
         for lane, num_active in controller.state_hist['lane_activity'].items():
+
+            if smooth:
+                win_seconds = 300
+                num_active = np.convolve(num_active, np.ones(win_seconds), 'same') / win_seconds
+
             ax_i.plot(dom, num_active, label=f'Lane {lane+1}')
 
         if plot_total:
@@ -83,10 +89,11 @@ def plot_hist_active(
 def plot_rate_estimate(controller: Controller):
     dom = [t / 60 / 60 for t in range(controller.clock.time)]
     fig, ax = plt.subplots(1, 1)
-    fig.suptitle('Estimated vs True Traffic Rate')
+    fig.suptitle('(Smoothed) Estimated vs True Traffic Rate')
     for i, (lane, col) in enumerate(zip(controller.lanes, mcolors.TABLEAU_COLORS)):
         rate_estimate = controller.state_hist[f'lane_{i}_wait_time']
         rate_true = [lane.traffic_rate_fn(t) for t in dom]
+
         ax.plot(dom, rate_estimate,  alpha=0.3, color=col)
         ax.plot(dom, rate_true, label=f'Lane {i+1}', color=col)
 

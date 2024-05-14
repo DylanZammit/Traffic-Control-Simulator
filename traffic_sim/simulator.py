@@ -20,7 +20,38 @@ def sim(
     duration_hours: float = 24,
     **strategy_kwargs
 ) -> Controller:
+    """
+    Simulate traffic flow in N lanes.
 
+    Parameters:
+    ----------
+    controller : Callable
+        The controller function to control the traffic flow.
+    lanes_config : list[dict]
+        List of dictionaries containing configuration details for each lane.
+    exit_rate : float, optional
+        The rate at which cars exit the system, by default 0.5.
+    frustration_fn : Callable, optional
+        Function to calculate frustration, by default lambda x: x**2.
+    verbose : bool, optional
+        Whether to print detailed simulation information, by default False.
+    save_hist : bool, optional
+        Whether to save the simulation history, by default False.
+    duration_hours : float, optional
+        Duration of the simulation in hours, by default 24.
+    **strategy_kwargs
+        Additional keyword arguments to be passed to the controller.
+
+    Returns:
+    -------
+    Controller
+        The instantiated controller object after the simulation.
+
+    Notes:
+    ------
+    This function simulates the traffic flow in N lanes using the specified controller function
+    and lane configurations for a given duration in hours.
+    """
     c = controller(
         lanes_config=lanes_config,
         exit_rate=exit_rate,
@@ -60,7 +91,32 @@ def main(
     save_hist=False,
     **strategy_kwargs
 ):
+    """
+    Main function to run traffic simulations.
 
+    Parameters
+    ----------
+    controller : Callable
+        The controller function to control the traffic flow.
+    n_sim : int
+        Number of simulations to run.
+    lanes_config : list[dict]
+        List of dictionaries containing configuration details for each lane.
+    exit_rate : float, optional
+        The rate at which cars exit the system.
+    frustration_fn : Callable, optional
+        Function to calculate the frustration of the system.
+    verbose : bool, optional
+        Whether to print detailed simulation information.
+    save_hist : bool, optional
+        Whether to save the simulation history.
+    **strategy_kwargs
+        Additional keyword arguments to be passed to the controller.
+
+    Returns
+    -------
+    None
+    """
     sim_kwargs = dict(
         controller=controller,
         lanes_config=lanes_config,

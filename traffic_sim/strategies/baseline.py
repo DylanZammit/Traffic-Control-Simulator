@@ -8,5 +8,13 @@ class ConstantController(Controller):
         self.wait_time = wait_time
 
     def is_time_up(self) -> bool:
+        """
+        Check if the maximum time has elapsed since the lane became active.
+
+        Returns
+        -------
+        bool
+            True if the maximum time has elapsed, False otherwise.
+        """
         is_max_time_elapsed = self.clock.diff(self.active_lane.active_since) > self.wait_time
         return is_max_time_elapsed

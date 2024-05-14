@@ -5,7 +5,18 @@ import numpy as np
 
 
 def plot_frustrations(models: dict) -> None:
+    """
+    Plots the frustrations of different models.
 
+    Parameters
+    ----------
+    models : dict
+        A dictionary containing model names as keys and metadata as values.
+
+    Returns
+    -------
+    None
+    """
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
     models_frustration = {name: val['frustrations'] for name, val in models.items()}
@@ -31,7 +42,24 @@ def plot_hist_active(
         idx: int = 0,
         smooth: bool = False,
 ):
+    """
+    Plots the active cars in each lane over time based on the provided models.
 
+    Parameters
+    ----------
+    models : dict
+        A dictionary containing model names as keys and metadata as values.
+    plot_total : bool, optional
+        Flag to plot the total number of cars. Defaults to False.
+    idx : int, optional
+        The index of the model to consider. Defaults to 0.
+    smooth : bool, optional
+        Flag to apply smoothing to the active car count. Defaults to False.
+
+    Returns
+    -------
+    None
+    """
     num_models = len(models)
 
     grid_map = {
@@ -87,6 +115,18 @@ def plot_hist_active(
 
 
 def plot_rate_estimate(controller: Controller):
+    """
+    Plots the estimated and true traffic rates over time based on the provided controller.
+
+    Parameters
+    ----------
+    controller : Controller
+        The controller containing the necessary information about lanes and traffic.
+
+    Returns
+    -------
+    None
+    """
     dom = [t / 60 / 60 for t in range(controller.clock.time)]
     fig, ax = plt.subplots(1, 1)
     fig.suptitle('(Smoothed) Estimated vs True Traffic Rate')

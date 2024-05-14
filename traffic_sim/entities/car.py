@@ -10,7 +10,20 @@ class Car:
             clock: Clock
     ):
         """
-        :param frustration_fn: patience penalty based on wait time: x ** 2, e ^ x - 1
+        Initializes a Car instance with the given frustration function and clock.
+
+        Parameters:
+        -----------
+        self: Car
+            The Car instance.
+        frustration_fn: Callable
+            The function that calculates the frustration of the car.
+        clock: Clock
+            The clock instance used to track time.
+
+        Returns:
+        --------
+        None
         """
         self.clock = clock
         self.frustration_fn = frustration_fn

@@ -6,6 +6,32 @@ from scipy.stats import beta
 
 
 class Clock:
+    """
+    Class representing a simple clock for time tracking.
+
+    Parameters
+    ----------
+    step : int
+        Time step increment for the clock.
+
+    Attributes
+    ----------
+    time : int
+        Current time tracked by the clock.
+    step : int
+        Time step increment for the clock.
+
+    Methods
+    -------
+    tick() -> Self
+        Increment the time by the step size.
+    diff(t) -> int
+        Calculate the difference between the current time and a given time.
+
+    Notes
+    -----
+    This class provides a simple clock mechanism for time tracking with basic time manipulation methods.
+    """
 
     def __init__(self, step: int = 1):
         self.time = 0
@@ -20,6 +46,22 @@ class Clock:
 
 
 def print_padding(text: Any, pad_char: str = '*', string_len: int = 50) -> None:
+    """
+    A function to print text surrounded by padding characters to a specified string length.
+
+    Parameters:
+    ----------
+    text : Any
+        The text to be printed.
+    pad_char : str, optional
+        The character used for padding, default is '*'.
+    string_len : int, optional
+        The total length of the output string, default is 50.
+
+    Returns:
+    -------
+    None
+    """
     n_text = len(str(text))
 
     padding = pad_char * ((string_len - n_text) // 2 - 2)
@@ -28,7 +70,19 @@ def print_padding(text: Any, pad_char: str = '*', string_len: int = 50) -> None:
 
 
 def timer(func: Callable) -> Callable:
+    """
+    A decorator that measures the duration of a function call and prints the duration.
 
+    Parameters:
+    ----------
+    func: Callable
+        The function to be timed.
+
+    Returns:
+    -------
+    Callable
+        A wrapped function that executes the input function and prints the duration.
+    """
     @wraps(func)
     def wrapper(*args, **kwargs):
         tick = time.time()
@@ -57,7 +111,29 @@ def traffic_rate(
         evening_peak_rate: float = 40,
         baseline_night_rate: float = 5,
 ) -> float:
+    """
+    A function to calculate the traffic rate based on various parameters such as time of day, peak times, and rates.
 
+    Parameters:
+    ----------
+    t_hours: float
+        The time in hours.
+    morning_peak_time: float, default 8
+        The time of the morning peak.
+    morning_peak_rate: float, default 50
+        The rate during the morning peak.
+    evening_peak_time: float, default 17
+        The time of the evening peak.
+    evening_peak_rate: float, default 40
+        The rate during the evening peak.
+    baseline_night_rate: float, default 5
+        The baseline rate at night.
+
+    Returns:
+    -------
+    float
+        The calculated traffic rate based on the input parameters.
+    """
     t_hours = t_hours % 24
 
     t_beta = t_hours / 24

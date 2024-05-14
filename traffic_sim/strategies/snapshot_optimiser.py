@@ -12,9 +12,37 @@ class SnapshotController(Controller):
         self.loop_duration = loop_duration
 
     def queue_penalty(self, t: list[float]):
+        """
+        Calculates the penalty based on the entry rate estimate, exit rate, and time durations.
+
+        Parameters:
+        -----------
+        t: list[float]
+            List of time proportions for each lane.
+
+        Returns:
+        --------
+        float
+            The calculated penalty based on the entry rate estimate, exit rate, and time durations squared.
+        """
         return sum(max(0, (lane.entry_rate_estimate - self.exit_rate * ti * 60)) ** 2 for ti, lane in zip(t, self.lanes))
 
     def estimate_entry_rate(self, lane: Lane):
+        """
+        Calculates the estimated entry rate based on the number of cars that have arrived within the rate lookback period.
+
+        Parameters:
+        -----------
+        self: SnapshotController
+            The SnapshotController instance.
+        lane: Lane
+            The lane for which the entry rate is being estimated.
+
+        Returns:
+        --------
+        float
+            The estimated entry rate calculated based on the number of cars and the rate lookback time.
+        """
         n_cars = next((
             i for i, car in enumerate(lane.active + lane.passed)
             if self.clock.diff(car.arrival_time) > self.rate_lookback
@@ -22,7 +50,20 @@ class SnapshotController(Controller):
         return n_cars / self.rate_lookback * 60
 
     def is_time_up(self) -> bool:
+        """
+        Checks if the maximum time has elapsed for the current active lane based on
+        the incoming rates of all 3 lanes and returns a boolean value.
 
+        Parameters:
+        -----------
+        self: SnapshotController
+            The SnapshotController instance.
+
+        Returns:
+        --------
+        bool
+            True if the maximum time has elapsed for the active lane, False otherwise.
+        """
         is_first_lane = self.active_lane_num == 0
         is_loop_start = self.clock.diff(self.active_lane.active_since) == 1
 

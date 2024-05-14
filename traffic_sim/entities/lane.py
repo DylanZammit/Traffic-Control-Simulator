@@ -9,6 +9,22 @@ from typing import Callable
 class Lane:
 
     def __init__(self, clock: Clock, traffic_rate_fn: Callable, frustration_fn: Callable):
+        """
+        Initializes a Lane object with the provided clock, traffic rate function, and frustration function.
+
+        Parameters:
+        -----------
+        clock: Clock
+            The clock object to keep track of time.
+        traffic_rate_fn: Callable
+            The function that calculates the current traffic rate.
+        frustration_fn: Callable
+            The function that determines the frustration level of cars in the lane.
+
+        Returns:
+        --------
+        None
+        """
         self.clock = clock
         self.active_since = -np.inf
         self.last_active_time = -np.inf
@@ -56,7 +72,18 @@ class Lane:
         return self.active_frustration + self.passed_frustration
 
     def update_new_active(self) -> None:
+        """
+        Updates the active cars in the lane based on the current traffic rate.
 
+        Parameters:
+        -----------
+        self: Lane
+            The Lane instance.
+
+        Returns:
+        --------
+        None
+        """
         current_rate = self.traffic_rate_fn(self.clock.time / 60 / 60)
 
         num_new_cars = int(np.random.poisson(current_rate / 60))
@@ -69,6 +96,9 @@ class Lane:
             self.active.appendleft(car)
 
     def drive_car(self) -> None:
+        """
+        Moves a car from the active queue to the passed queue, updating exit times.
+        """
         if self.num_active_cars == 0:
             return
 

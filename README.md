@@ -3,6 +3,7 @@
 1. [Introduction](#Introduction)
 2. [Installation](#Model-Explanation)
 3. [Running](#Code-Structure)
+3. [Implementation](#Implementation)
 4. [Srategies](#Data)
 5. [Configuration](#Methodology)
 6. [Results](#Results)
@@ -11,7 +12,7 @@
 ## Introduction
 Commuting to and from work on a daily basis is a frustrating experience to say the least.
 It is especially frustrating when you can pinpoint improvements in the traffic system, that can potentially easily be implemented.
-One such annoyance is the Kennedy Drive traffic lights shown in the below google maps image.
+One such annoyance is the Kennedy Drive traffic lights shown in the below google maps image (Coordinates: 35.94509669780911, 14.412841360782597).
 
 This is a 3-road junction, with each road having two lanes, and each traffic light having a duration of exactly 20 seconds
 before switching from green to red (yes, I timed it multiple times while I am stuck in traffic).
@@ -35,7 +36,7 @@ is loaded shall contain all the configuration of the system and models.
 ```bash
 python simulator.py
 ```
-## Implementation [WIP]
+## Implementation
 In this image we can see an example flow of traffic for a particular lane.
 We can observe the cyclic effect, beginning with a 40-second period of worsening traffic.
 This is typically followed by a duration of 20 seconds where vehicles are dispelled out of the queue,
@@ -43,6 +44,102 @@ usually at a higher rate than that of entry, explaining the steeper downward gra
 the 20-seconds is not enough to compensate for the 40-second incline in traffic. This generates an overall
 upward trend in traffic.
 ![flow_simulation_closeup](https://github.com/DylanZammit/Traffic-Control-Simulator/blob/master/img/flow_sim_incline.png?raw=true)
+### Poisson Process
+The flow of traffic across time is assumed to follow a Poisson Process. This model revolves around the Poisson distribution, which is a natural
+distribution used to count random objects.  Another application of the Poisson distribution is used to model
+the number of goals scored by a team in a football match. This in turn is used to model the probabilities of a team winning
+an encounter against an opponent. An implementation and more detailed explanation is given in this [Github Project](https://github.com/DylanZammit/Football-Odds-Prediction).
+
+There are two ways two define such a process.
+
+* The first definition states that the duration between any two successive arrivals follows an exponential distribution with some rate parameter $`\lambda`$.
+* The second definition states that for any time interval of length $`t`$ seconds, the number of cars arriving is Poisson distributed with mean parameter $`\lambda`$.
+
+The second definition is more relevant for the implementation of this project as shall be described in the next section. 
+### Simulation
+Each road is considered as being defined by a queue of cars incoming using a FIFO process. 
+
+The brains of the system is defined in the `Controller` class. This will contain all of our universe's information such as
+
+* the lanes and their metadata
+* the cars which belong in a lane queue and in turn the controller
+* the clock, which keeps track of the time taken since the beginning of the simulation
+* the incoming/outgoing cars in all lanes
+* the strategy deciding when a traffic light should turn green and for how long.
+
+The controller is first defined, and the `run_iter` method is called iteratively in a loop for a desired duration.
+Each iteration corresponds to 1 second in real-life. This method performs the following steps:
+1) Increment the time by one second.
+2) Update each lane with new incoming cars by sampling from a Poisson distribution with rate $`\lambda_i`$ for lane $`i`$.
+3) If the last car in the current active lane exited $`1/\mu`$ seconds ago, then a car should exit.
+4) Check if the current active lane should turn red based on the implemented strategy.
+5) Optionally save any metadata for later analysis.
+
+<details>
+<summary>run_iter</summary>
+
+```python
+def run_iter(self) -> None:
+
+    self.clock.tick()
+
+    for lane in self.lanes:
+        lane.update_new_active()
+
+    num_active_cars = self.active_lane.num_active_cars
+    time_since_last_exit = self.clock.time - self.active_lane.last_exit_time
+
+    if num_active_cars > 0 and time_since_last_exit >= (1 / self.exit_rate):
+        self.active_lane.drive_car()
+
+    if self.is_time_up():
+        self.run_next_lane()
+
+    if self.save_hist:
+        self.update_hist()
+```
+
+</details>
+
+### Strategy Setup
+The `Controller` class enforces implementation of the `is_time_up` method. This method should take all information
+of the system, and return a boolean depending no whether it is time to switch lane or not. This is essentially the brain
+of the model. Thus one would need to create their own child-controller class that inherits from `Controller`, implementing
+at least this method (and optionally more if required).
+
+For instance below is the simplest implemented method of the Baseline strategy that will be described in more detail in an
+upcoming section.
+
+<details>
+<summary>Baseline Strategy</summary>
+
+```python
+class ConstantController(Controller):
+
+    def __init__(self, wait_time: int, **kwargs):
+        super().__init__(**kwargs)
+        self.wait_time = wait_time
+
+    def is_time_up(self) -> bool:
+        is_max_time_elapsed = self.clock.diff(self.active_lane.active_since) > self.wait_time
+        return is_max_time_elapsed
+```
+
+</details>
+
+### Assumptions
+Below are some assumptions taken.
+
+* Number of cars arriving follows a Poisson distribution.
+* The exit rate is constant throughout the day, and it does not vary with the queue position of a car.
+* There is no yellow light.
+* All 3 lanes are independent of each other.
+
+The above models are quite relaxed in general. It would be interesting if they could be somehow modelled, but I would imagine it
+being quite difficult to do so. Consider for example the last point.
+Lanes being dependent on each other might occur if other junctions such a roundabout is in the vicinity of the traffic lights.
+In this case, one busy lane might clog up the roundabout, which in turn impacts the other lanes. 
+
 ## Strategies
 In this experiment we will implement and compare 3 different strategies. I will explain the three models in the followign subsections.
 ### Baseline Model
@@ -62,7 +159,7 @@ no cars enter the lane, the light automatically turns to red, so that other lane
 This should almost certainly help the flow of traffic under low or medium traffic conditions. 
 
 However, what happens when there is at least medium-to-high traffic? 
-If P=5s and all lanes see a new car at a relatively low rate of 4 seconds, then this model is precisely equivalent
+If $`P=5s`$ and all lanes see a new car at a relatively low rate of 4 seconds, then this model is precisely equivalent
 to the Baseline model. The next model attempts to address this issue.
 ### Snapshot Model
 This model attempts to use the rate of incoming cars to dynamically adjust the ratio of light duration between all lanes.
@@ -114,7 +211,7 @@ The three models were configured with the below parameters.
 Below is the yaml file including all of this configuration.
 
 <details>
-<summary>Output</summary>
+<summary>Example Config File</summary>
 
 ```yaml
 simulation:

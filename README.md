@@ -12,7 +12,7 @@
 ## Introduction
 Commuting to and from work on a daily basis is a frustrating experience to say the least.
 It is especially frustrating when you can pinpoint improvements in the traffic system, that can potentially easily be implemented.
-One such annoyance is the Kennedy Drive traffic lights shown in the below google maps image (Coordinates: 35.94509669780911, 14.412841360782597).
+One such annoyance is the Kennedy Drive traffic lights shown in the below google maps image (Coordinates: `35.9450, 14.4128`).
 
 This is a 3-road junction, with each road having two lanes, and each traffic light having a duration of exactly 20 seconds
 before switching from green to red (yes, I timed it multiple times while I am stuck in traffic).
@@ -127,6 +127,54 @@ class ConstantController(Controller):
 
 </details>
 
+### Incoming Rate
+
+The incoming car rate for lane $`i`$ is varied throughout the day in an attempt to capture the morning evening rush hours.
+
+We would like to capture some important features:
+* Morning rush hour peak at around 8am
+* Evening rush hour peak at around 5pm
+* A baseline traffic flow for the rest of the day
+
+This rate is modelled by summing two beta distributions (since they have a domain between 0 and 1), scale it by 24 times
+representing the whole day, and finally shifting up by a base traffic 
+
+<details>
+<summary>Traffic Rate Function</summary>
+
+```python
+@cache
+def traffic_rate(
+        t_hours: float,
+        morning_peak_time: float = 8,
+        morning_peak_rate: float = 50,
+        evening_peak_time: float = 17,
+        evening_peak_rate: float = 40,
+        baseline_night_rate: float = 5,
+) -> float:
+
+    t_hours = t_hours % 24
+
+    t_beta = t_hours / 24
+    r = morning_peak_time / 24
+    b_morning = 10
+    a_morning = - ((b_morning - 2) * r + 1) / (r - 1)
+
+    r = evening_peak_time / 24
+    b_evening = 10
+    a_evening = - ((b_evening - 2) * r + 1) / (r - 1)
+
+    mode_morning = beta.pdf((a_morning - 1) / (a_morning + b_morning - 2), a_morning, b_morning)
+    mode_evening = beta.pdf((a_evening - 1) / (a_evening + b_evening - 2), a_evening, b_evening)
+
+    morning_rate = beta.pdf(t_beta, a_morning, b_morning) / mode_morning * (morning_peak_rate - baseline_night_rate)
+    evening_rate = beta.pdf(t_beta, a_evening, b_evening) / mode_evening * (evening_peak_rate - baseline_night_rate)
+
+    return baseline_night_rate + morning_rate + evening_rate
+```
+
+</details>
+
 ### Assumptions
 Below are some assumptions taken.
 
@@ -153,7 +201,7 @@ Two natural question arise:
 ### Idle Model
 As I look at the other cars in flowing lanes cruise by, or more frustratingly, watch all three lanes idle
 while no cars are flowing in the green-lit lane, I wonder why that specific lane cannot simply turn red
-so that more trafficous lanes can start moving. This is exactly the strategy of this model. If, for at least P seconds
+so that busier lanes can start moving. This is exactly the strategy of this model. If, for at least P seconds
 no cars enter the lane, the light automatically turns to red, so that other lanes can start moving.
 
 This should almost certainly help the flow of traffic under low or medium traffic conditions. 
@@ -194,7 +242,7 @@ A full 24-hour day is simulated where the exit rate is set to 1 car per second.
 How did I get to this figure? While stuck in traffic, I simply counted the number of cars
 in front of me, and then counted how long it took me to reach the first position. 
 Dividing the two roughly resulted in a rate of one car exit every two seconds.
-Since this junction has two lanes, I multiplied the rate of 0.5 by 2 to get a value of $`\mu=1`$.
+Since all lanes of this junction are dual-carriageways, the rate of 0.5 was multiplied by 2 to get a value of $`\mu=1`$.
 
 A separate bimodal traffic rate was created to simulate the varying flow of traffic throughout the day for each separate lane.
 The bimodal nature reflects the increased spikes of traffic in the morning and afternoon rush
@@ -267,34 +315,38 @@ a dynamic traffic light waiting time.
 ![true_estimate_rate](https://github.com/DylanZammit/Traffic-Control-Simulator/blob/master/img/true_estimate_rate.png?raw=true)
 
 Below are the simulation results of different strategies described in the above section. 
-The black line shows the total number of cars waiting in the roads across all lanes
-whereas the other lines correspond to the cars waiting for the green light for every separate lane.
+The lines correspond to the cars waiting for the green light for every separate lane. 
+The values were smoothed using a windows of 5 minutes for readability.
 
 ![flow_case_1](https://github.com/DylanZammit/Traffic-Control-Simulator/blob/master/img/flow_sim_case_max20.png?raw=true)
 
 This model clearly shows (unsurprisingly) that the worst model out of the three is the baseline model.
-The average car frustration is at 0.62, more than 4 times the other two strategies. 
+The average car frustration is at 0.3, more than twice the other two strategies. 
 Also note the drastic increase in cars waiting in traffic during the morning and evening rush hours.
 Although visible, it is much less evident in the other two models, reaching half the queued cars at the peak.
 
 The Idle model and Snapshot model are much more comparable, with the frustration score being similar. 
 However, what happens when we increase the flow of cars at the peak of rush hour by a little bit?
 The below image shows the same simulation with the only difference being that the entry rate at the peak
-rush hour times is increased from 20 to 25 cars per minute.
+rush hour times is increased from 20 to 22 cars per minute.
 
 ![flow_case_2](https://github.com/DylanZammit/Traffic-Control-Simulator/blob/master/img/flow_sim_case_max25.png?raw=true)
 
 As described earlier, the baseline and idle models become much more similar to each other with increased traffic.
-It is still worth noting that the Baseline model is the worst of the three.
+The baseline model is extremely susceptible to heavy traffic with an increased flow of traffic, reaching a peak of 300 
+cars waiting for Lane 3 at around 10am.
 The snapshot model, on the other hand, adjusted impressively well to the flow of traffic,
 alleviating the burden of traffic across all three lanes throughout the day, with no
-parameter tuning at all.
+parameter tuning at all. All 3 lanes seem to have similar levels of traffic. The idle model in comparison has visible 
+spikes during rush hours. However, during quiter periods throughout the day, performs better than the Snapshot model.
 
-This not only shows that the model is superior to the other two in terms of "frustration metrics".
-It also shows that it is much more robust to traffic conditions due to its dynamic nature.
+This not only shows that the model is comparable or superior to the other two in terms of "frustration metrics".
+It also shows that it is much more robust to traffic conditions due to its dynamic nature. 
+It might make sense to combine the snapshot model with the idle model depending on the time of day for an even 
+better model.
 
 ## Conclusion
 
 Hopefully this project sheds some (more) light on the obviously worsening traffic conditions in Malta.
 Moreover, I hope that such a project inspires greater minds into realising that the traffic problem in Malta
-is solveable, or at the very least improveable with relatively simple changes.
+is solvable, or at the very least improvable with relatively simple changes.
